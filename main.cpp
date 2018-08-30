@@ -6,6 +6,5 @@ bool main_value_category();
 int main() {
     if(main_value_category())
         std::cout<<"Done!"<<std::endl;
-    //None
     return 0;
 }

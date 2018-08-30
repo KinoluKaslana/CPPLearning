@@ -126,4 +126,3 @@ bool main_value_category()
     return _lvalue() && _prvalue() && _xvalue();
     // 泛左值，右值，特性看简书总结。
 }
-//None

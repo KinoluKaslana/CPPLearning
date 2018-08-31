@@ -2,9 +2,9 @@
 // Created by KinoluKaslana on 18-8-30.
 //
 //
+//文字总结:https://www.jianshu.com/p/6845112bb4ff
 #include <iostream>
-struct Test_Class_VC
-{
+struct Test_Class_VC {
     int foo;
     virtual void fun(){std::cout<<"Base"<<std::endl;}
     static int foo1;
@@ -14,8 +14,7 @@ struct Test_Class_VC
 int Test_Class_VC::foo1 = 1;
 void func(){}
 static auto &&fun(){return func;}
-bool _lvalue()
-{
+bool _lvalue() {
     std::cout<<"In lvalue"<<std::endl;
     int Test_Class_VC::*foo_p = &Test_Class_VC::foo;
     void (*sfun_p)() = &Test_Class_VC::fun1;
@@ -60,16 +59,13 @@ bool _lvalue()
     return true;
 }
 //ToDo完成下列事项，发表简书
-struct Test_Class_VC_1:Test_Class_VC
-{
+struct Test_Class_VC_1:Test_Class_VC {
     virtual void fun() final {std::cout<<"Special"<<std::endl;}
 };
-Test_Class_VC &&func1()
-{
+static Test_Class_VC &&func1() {
     return Test_Class_VC_1();
 }
-bool _prvalue()
-{
+bool _prvalue() {
     std::cout<<"In prvalue"<<std::endl;
     void (Test_Class_VC::*fun_p)() = &Test_Class_VC::fun;
     void (*sfun_p)() = &Test_Class_VC::fun1;
@@ -101,8 +97,7 @@ bool _prvalue()
     delete pobj;
     return true;
 }
-bool _xvalue()
-{
+bool _xvalue() {
     std::cout<<"In xvalue"<<std::endl;
 
     //func1().fun();                                                    //返回右值引用的函数调用和重载运算符表达式
@@ -121,8 +116,6 @@ bool _xvalue()
                                                                         //亡值可以有cv限定（即返回右值带有CV限定的函数表达式等）
     return true;
 }
-bool main_value_category()
-{
+bool main_value_category() {
     return _lvalue() && _prvalue() && _xvalue();
-    //泛左值，右值，特性看简书总结 Link:https://www.jianshu.com/p/6845112bb4ff。
 }

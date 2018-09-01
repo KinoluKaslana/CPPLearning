@@ -10,6 +10,6 @@ int main() {
         std::cout<<"Done!"<<std::endl;
     if(std::cout<<"Running example: statement & identifier & expression"<<std::endl,
             main_statement_identifier_expression())
-        std::cout<<"Done!"<<std::endl; 
+        std::cout<<"Done!"<<std::endl;
     return 0;
 }

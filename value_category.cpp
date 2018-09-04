@@ -4,6 +4,8 @@
 //
 //文字总结:https://www.jianshu.com/p/6845112bb4ff
 #include <iostream>
+#include "AllCore.h"
+NS_VALUE_CAT
 struct Test_Class_VC {
     int foo;
     virtual void fun(){std::cout<<"Base"<<std::endl;}
@@ -13,7 +15,7 @@ struct Test_Class_VC {
 };
 int Test_Class_VC::foo1 = 1;
 void func(){}
-static auto &&fun(){return func;}
+auto &&fun(){return func;}
 bool _lvalue() {
     std::cout<<"In lvalue"<<std::endl;
     int Test_Class_VC::*foo_p = &Test_Class_VC::foo;
@@ -62,7 +64,7 @@ bool _lvalue() {
 struct Test_Class_VC_1:Test_Class_VC {
     virtual void fun() final {std::cout<<"Special"<<std::endl;}
 };
-static Test_Class_VC &&func1() {
+Test_Class_VC &&func1() {
     return Test_Class_VC_1();
 }
 bool _prvalue() {
@@ -119,3 +121,4 @@ bool _xvalue() {
 bool main_value_category() {
     return _lvalue() && _prvalue() && _xvalue();
 }
+NS_END

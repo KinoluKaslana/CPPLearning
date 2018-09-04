@@ -3,6 +3,8 @@
 //
 //文字总结:https://www.jianshu.com/p/e1f071f2507c
 #include <iostream>
+#include "AllCore.h"
+NS_STAT_IDENT
 static bool test_bool() {
     return true;
 }
@@ -62,7 +64,7 @@ enum E1{EM1,EM2};
 struct C1{int member;};
 namespace N1{}
 template<class ... _Tys>
-struct TC1{TC1(_Tys ... _args) = default;};
+struct TC1{TC1(_Tys ... _args){}};
 static void func1(){}
 int a,_a,_87,中文;                               //以_，英文字母，通用转移序列\uxxxx开头的都可以
                                                 //对于一个声明的规则如下:
@@ -75,7 +77,7 @@ bool main_identifier() {
 //标识符在表达式中
     a;_a;_87;中文;
     EM1;EM2;
-    func1;                                       //标识符命名了枚举项，变量，函数，则这个标识符就是表达式
+    func1;                                      //标识符命名了枚举项，变量，函数，则这个标识符就是表达式
                                                 //并且，当当前表达式（表达式可以嵌套）单独为当前标识符时，这个表达式代表的是标识符命名的实体
     [=](){esp;};                                //esp在其生存期外被lambda闭包对象捕获，此时，这个esp单独这个表达式的类型实际上时一个
                                                 //出现在其出现的最内存的lambda闭包对象的成员访问表达式的类型
@@ -124,3 +126,4 @@ bool main_expression() {
 bool main_statement_identifier_expression() {
     return main_statement() && main_identifier() && main_expression();
 }
+NS_END

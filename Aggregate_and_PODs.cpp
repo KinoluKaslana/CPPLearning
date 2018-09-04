@@ -3,27 +3,29 @@
 //
 
 #include <iostream>
+#include <cstdlib>
+#include <memory.h>
 #include "AllCore.h"
 //Aggergates:
 NS_AGGREATE_POD
 namespace _in_std03 {
     class Aggergates_class {
     private:
-        void func3() {}                      //OK各种位置的成员函数
-        static int foo1;                    //OKprivate的静态成员
+        void func3() {}                                     //OK各种位置的成员函数
+        static int foo1;                                    //OKprivate的静态成员
     protected:
-        static int foo2;                    //OKprotected的静态成员
+        static int foo2;                                    //OKprotected的静态成员
         void func1() {}
 
     public:
-        Aggergates_class &operator=(Aggergates_class &src) //OK用户定义的copy-assignment operator
-        {
+        Aggergates_class &operator=(Aggergates_class &src){ //OK用户定义的copy-assignment operator
+
             foo3 = src.foo3;
             foo4 = src.foo4;
             return *this;
         }
 
-        ~Aggergates_class() {}                               //OK用户定义的析构函数
+        ~Aggergates_class() {}                              //OK用户定义的析构函数
 
         void func2() {}
 
@@ -38,16 +40,15 @@ namespace _in_std03 {
         virtual void fun1() {}
     };
 
-    class Non_Aggergates_class : Bad_base                     //继承
-    {
+    class Non_Aggergates_class : Bad_base{                  //继承
     private:
         int foo1;                                           //非public的非静态数据成员
     public:
         int foo2;
 
         Non_Aggergates_class(int) {
-            std::cout << "Call Constructor" << std::endl;
-        }                         //用户定义的构造函数
+            std::cout << "Call Constructor" << std::endl;   //用户定义的构造函数
+        }
         Non_Aggergates_class(Non_Aggergates_class &src) {
             foo1 = src.foo1;
             foo2 = src.foo2;
@@ -101,6 +102,10 @@ namespace _in_std03 {
                                        {2, 3},
                                        {}};
         std::cout << gArray1[0].foo3 << std::endl << gArray1[1].foo4 << std::endl << gArray1[2].foo3 << std::endl;
+        /*
+         * 不同于Aggergates_class gArray1[3] = {1,2,3};
+         * 的初始化结果
+         */
         Aggergates_class gArray2[3] = {};
         std::cout << "Bad Aggergates Call List:" << std::endl;
         Non_Aggergates_class bArray1[3] = {{1},
@@ -121,13 +126,32 @@ namespace _in_std03 {
         //哪怕构造函数函数体，参数等，均为空
         return true;
     }
-
-    //ToDo:PODs 的性质：生命周期不随构造函数，对于memcpy等强拷贝感冒，如果一个PODs的成员第一个是另一个PODs那么可以直接通过编译器类型指定的类型转换把它转为其成员类类型的指针，直接调用
-    //goto跳过PODs时不会有error，但是non-PODs就会抛error
     struct PODs {
         int foo1;
-
+        int foo2;
     };
+    struct PODs1 {
+        PODs OT;
+        int foo;
+    };
+    bool in_std03_POD(){
+        goto flags;
+        PODs1 T1;                                                                           //auto生存期的POD生命期随堆栈，而不随构造与析构，注意，Aggregate没有这个性质
+        flags: PODs *P_T1 = reinterpret_cast<PODs*>(std::malloc(sizeof(PODs)));
+        char TEMP[sizeof(PODs1)]{};
+        memcpy(&T1,TEMP, sizeof(PODs1));                                                    //PODs不对memcpy感冒，可以直接按照内存分布拷贝，不会有问题
+        memcpy(P_T1,&T1,sizeof(PODs));                                                      //同上
+        std::cout<< reinterpret_cast<PODs*>(&T1)->foo1 + P_T1->foo2<<std::endl;             //当PODs的第一个成员也是一个POD的时候，可以直接对其在编译器的类型进行转换，可以当作一个成员的类来使用
+        /*
+        goto flags1;
+        Aggergates_class T2{};                                                              //不可以跳过非POD的构造调用
+        flags1:T2.foo3 = 2;
+        */
+        return true;
+    };
+}
+bool main_aggregate_and_pods() {
+    return _in_std03::in_std03() && _in_std03::in_std03_POD();
 }
 NS_END
 

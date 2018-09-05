@@ -5,49 +5,66 @@
 #include <iostream>
 #include <cstdlib>
 #include <memory.h>
+#include <vector>
 #include "AllCore.h"
 //Aggergates:
 NS_AGGREATE_POD
 namespace _in_std03 {
+    //一个Aggergates的完全标准描述：
+    struct IS_Aggergates{
+    private:
+        void fun1(){}                                        //任何位置的成员函数
+        static int foo1;                                     //static的数据成员可以有private访问限制
+        //virtual void vfun1(){};                            //任何位置都不能有虚函数
+    protected:
+        void fun2(){}
+        static int foo2;                                     //static数据成员可以有protected访问限制
+        //virtual int vfun2(){}
+    public:
+        IS_Aggergates &operator=(IS_Aggergates &src){}       //有用户定义的重载=运算符
+        ~IS_Aggergates(){}                                   //有用户定义的析构函数
+        //virtual int vfun3(){}
+        //IS_PODs(){}
+        const static int foo3 = 2;                           //static数据成员
+        int foo4;                                            //非static数据成员必须为public
+        //int &foo5;                                         //不包含引用
+        std::istream foo6;                                   //可以有任意类型的数据成员，但是如此做会引发错误，具体请见简书内容
+    };
+    //以下为性质展示定义的类和展示：
     class Aggergates_class {
     private:
-        void func3() {}                                     //OK各种位置的成员函数
-        static int foo1;                                    //OKprivate的静态成员
+        void func3() {}
+        static int foo1;
     protected:
-        static int foo2;                                    //OKprotected的静态成员
+        static int foo2;
         void func1() {}
 
     public:
-        Aggergates_class &operator=(Aggergates_class &src){ //OK用户定义的copy-assignment operator
+        Aggergates_class &operator=(Aggergates_class &src){
 
             foo3 = src.foo3;
             foo4 = src.foo4;
             return *this;
         }
 
-        ~Aggergates_class() {}                              //OK用户定义的析构函数
+        ~Aggergates_class() {std::cout<<"Destroctor Called!"<<std::endl;}
 
         void func2() {}
 
-        int foo3 = 2;                                       //非静态的类成员为public
+        int foo3;
         int foo4;
     };
-
-    int Aggergates_class::foo1 = 5;
-    int Aggergates_class::foo2 = 5;
-
     class Bad_base {
         virtual void fun1() {}
     };
-
-    class Non_Aggergates_class : Bad_base{                  //继承
+    class Non_Aggergates_class : Bad_base{                   //继承
     private:
-        int foo1;                                           //非public的非静态数据成员
+        int foo1;                                            //非public的非静态数据成员
     public:
         int foo2;
 
         Non_Aggergates_class(int) {
-            std::cout << "Call Constructor" << std::endl;   //用户定义的构造函数
+            std::cout << "Call Constructor" << std::endl;    //用户定义的构造函数
         }
         Non_Aggergates_class(Non_Aggergates_class &src) {
             foo1 = src.foo1;
@@ -76,17 +93,8 @@ namespace _in_std03 {
         Bad_Kind T1;
         int foo;
     };
-
-    class Bad_Test {
-    private:
-        Bad_Test() = default;
-
-    public:
-        int foo;
-        int &fdo;
-    };
-
     bool in_std03() {
+        std::cout<<"Begain Shows C++03 Aggregates!"<<std::endl;
         int i = 4;
         Aggergates_class gd1 = {1, 2};          //并不调用构造函数
         Aggergates_class gd2 = {1};             //第二个数据成员被默认初始化成功
@@ -101,7 +109,7 @@ namespace _in_std03 {
         Aggergates_class gArray1[3] = {{1},
                                        {2, 3},
                                        {}};
-        std::cout << gArray1[0].foo3 << std::endl << gArray1[1].foo4 << std::endl << gArray1[2].foo3 << std::endl;
+        std::cout << gArray1[0].foo4 << std::endl << gArray1[1].foo4 << std::endl << gArray1[2].foo3 << std::endl;
         /*
          * 不同于Aggergates_class gArray1[3] = {1,2,3};
          * 的初始化结果
@@ -111,6 +119,7 @@ namespace _in_std03 {
         Non_Aggergates_class bArray1[3] = {{1},
                                            {2},
                                            {3}};            //调用构造函数完成，步骤见运行输出
+        std::cout<<"End"<<std::endl;
         //Non_Aggergates_class bArray2[3] = {{1,2},{},{3}}; //没有正确使用构造函数
         //Non_Aggergates_class bArray3[3] = {};             //同上
         Nature1 T1{1, 2, 3};                                //为聚合体，可以直接初始化，并且不经过构造
@@ -121,20 +130,40 @@ namespace _in_std03 {
         //Nature2 NT2 {};                                   //存在成员无法显式的默认初始化
         Nature2 AT2[1]{Bad_Kind(1)};                        //使用构造，调用拷贝构造进行初始化
         int j = 1;
-        Bad_Test A{1, j};                                   //没有提到，但是这里没有使用构造函数进行初始化
-        //推论，由此可知，判断聚类之前，如果得到用户定义的构造函数，那么表明当前类需要进行特殊处理而不能按照聚合的方式初始化。
-        //哪怕构造函数函数体，参数等，均为空
+
         return true;
     }
+    //以下是PODs，在C++03中正确的标准说明：
     struct PODs {
         int foo1;
         int foo2;
     };
+    struct IS_PODs{
+    private:
+        void fun1(){}                                       //任何位置的成员函数
+        static int foo1;                                    //static的成员数据
+        //virtual void vfun1(){};                           //任何位置都不能有虚函数
+    protected:
+        void fun2(){}
+        static int foo2;
+        //virtual int vfun2(){}
+    public:
+        //IS_PODs &operator=(IS_PODs &src){}                //不能有用户定义的重载=运算符
+        //~IS_PODs(){}                                      //不能有用户定义的析构函数
+        //virtual int vfun3(){}
+        //IS_PODs(){}
+        const static int foo3 = 2;                          //static成员数据
+        int foo4;                                           //标量类型成员
+        //int &foo5;                                        //不包含引用
+        PODs foo6;                                          //不包含非PODs成员（包含结构，union，数组）
+    };
+    //以下是特性展示类声明和展示：
     struct PODs1 {
         PODs OT;
         int foo;
     };
     bool in_std03_POD(){
+        std::cout<<"Begain Shows C++03 PODs!"<<std::endl;
         goto flags;
         PODs1 T1;                                                                           //auto生存期的POD生命期随堆栈，而不随构造与析构，注意，Aggregate没有这个性质
         flags: PODs *P_T1 = reinterpret_cast<PODs*>(std::malloc(sizeof(PODs)));
@@ -142,16 +171,50 @@ namespace _in_std03 {
         memcpy(&T1,TEMP, sizeof(PODs1));                                                    //PODs不对memcpy感冒，可以直接按照内存分布拷贝，不会有问题
         memcpy(P_T1,&T1,sizeof(PODs));                                                      //同上
         std::cout<< reinterpret_cast<PODs*>(&T1)->foo1 + P_T1->foo2<<std::endl;             //当PODs的第一个成员也是一个POD的时候，可以直接对其在编译器的类型进行转换，可以当作一个成员的类来使用
+                                                                                            //因为这里被保证不会向POD类前插任何数据胡
         /*
         goto flags1;
         Aggergates_class T2{};                                                              //不可以跳过非POD的构造调用
         flags1:T2.foo3 = 2;
         */
+        std::free(P_T1);
         return true;
     };
 }
+namespace _in_std11 {
+    struct IS_Aggrtgate{
+    private:
+        //int foo;
+        void fun1(){}                                       //同C++03
+        static int foo1;                                    //同C++03
+        IS_Aggrtgate() = default;                           //由于是C++11新特性，特此在标准中修改描述，改为不允许出现用户定义行为的构造函数
+                                                            //当前的构造函数是编译器定义行为的，即默认行为的构造函数
+    protected:
+        void fun2(){}
+        static int foo2;                                    //同C++03
+    public:
+        constexpr static int foo3 = 2;                      //同C++03
+        void fun3(){}
+        //virtual void fun4(){}                             //同C++03
+        //int foo4 = 3;                                     //增加C++11新特性，允许对非静态成员使用定义初始化赋值
+        //std::vector<int> foo5{1,2,3};                     //同上
+        IS_Aggrtgate &operator=(IS_Aggrtgate &src){}        //同C++03
+        ~IS_Aggrtgate(){std::cout<<"Destroctor Called!"<<std::endl;} //同C++03
+        int foo6;
+        std::vector<int> foo7;                              //同C++03
+    };
+    bool _is_std11() {
+        std::cout<<"Begain Shows C++11 Aggregates!"<<std::endl;
+        IS_Aggrtgate A{1};                                  //推论，由此可知，判断聚类之前，如果得到用户定义的构造函数，那么表明当前类需要进行特殊处理而不能按照聚合的方式初始化。
+                                                            //哪怕构造函数函数体，参数等，均为空，这也是用户定义了行为的构造函数
+                                                            //由当前示例可知，实际上并不调用构造函数，因为构造函数被定义为private
+                                                            //但是会调用析构函数，因为允许存在非PODs类型的数据成员，那么就不敢保证其数据成员的析构函数是否被用户定义行为
+        //IS_Aggrtgate *P = new IS_Aggrtgate();
+        return true;
+    }
+}
 bool main_aggregate_and_pods() {
-    return _in_std03::in_std03() && _in_std03::in_std03_POD();
+    return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11();
 }
 NS_END
 

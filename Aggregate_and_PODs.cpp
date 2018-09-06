@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <memory.h>
 #include <vector>
+#include <type_traits>
 #include "AllCore.h"
 //Aggergates:
 NS_AGGREATE_POD
@@ -96,6 +97,10 @@ namespace _in_std03 {
     };
     bool in_std03() {
         std::cout<<"Begain Shows C++03 Aggregates!"<<std::endl;
+        std::cout<<"Testing Class : IS_Aggregates\t"<<((std::is_aggregate<IS_Aggergates>::value)?"true":"false")<<std::endl<<
+        "Testing Class : Aggregates_Class\t"<<((std::is_aggregate<Aggergates_class>::value)?"true":"false")<<std::endl<<
+        "Testing Class : Bad_Base\t"<<((std::is_aggregate<Bad_base>::value)?"true":"faluse")<<std::endl<<
+        "Testing Class : Non_Aggregates_class\t"<<((std::is_aggregate<Non_Aggergates_class>::value)?"true":"false")<<std::endl;
         int i = 4;
         Aggergates_class gd1 = {1, 2};          //并不调用构造函数
         Aggergates_class gd2 = {1};             //第二个数据成员被默认初始化成功
@@ -165,6 +170,9 @@ namespace _in_std03 {
     };
     bool in_std03_POD(){
         std::cout<<"Begain Shows C++03 PODs!"<<std::endl;
+        std::cout<<"Testing Class : IS_PODs\t"<<(std::is_pod<IS_PODs>::value?"true":"false")<<std::endl;
+        std::cout<<"Testing Class : PODs\t"<<(std::is_pod<PODs>::value?"true":"false")<<std::endl;
+        std::cout<<"Testing Class : PODs1\t"<<(std::is_pod<PODs1>::value?"true":"false")<<std::endl;
         goto flags;
         PODs1 T1;                                                                           //auto生存期的POD生命期随堆栈，而不随构造与析构，注意，Aggregate没有这个性质
         flags: PODs *P_T1 = reinterpret_cast<PODs*>(std::malloc(sizeof(PODs)));
@@ -183,12 +191,12 @@ namespace _in_std03 {
     };
 }
 namespace _in_std11 {
-    struct IS_Aggrtgate{
+    struct IS_Aggregate{
     private:
         //int foo;
         void fun1(){}                                       //同C++03
         static int foo1;                                    //同C++03
-        IS_Aggrtgate() = default;                           //由于是C++11新特性，特此在标准中修改描述，改为不允许出现用户定义行为的构造函数
+        IS_Aggregate() = default;                           //由于是C++11新特性，特此在标准中修改描述，改为不允许出现用户定义行为的构造函数
                                                             //当前的构造函数是编译器定义行为的，即默认行为的构造函数
     protected:
         void fun2(){}
@@ -199,15 +207,21 @@ namespace _in_std11 {
         //virtual void fun4(){}                             //同C++03
         //int foo4 = 3;                                     //增加C++11新特性，允许对非静态成员使用定义初始化赋值
         //std::vector<int> foo5{1,2,3};                     //同上
-        IS_Aggrtgate &operator=(IS_Aggrtgate &src)
+        IS_Aggregate &operator=(IS_Aggregate &src)
                 {return *this;}                             //同C++03
-        ~IS_Aggrtgate(){std::cout<<"Destroctor Called!"<<std::endl;} //同C++03
+        ~IS_Aggregate(){std::cout<<"Destroctor Called!"<<std::endl;} //同C++03
         int foo6;
         std::vector<int> foo7;                              //同C++03
     };
+    struct Bad_Try{
+        int foo1 = 3;
+        std::vector<int> foo2{1,2,3};
+        Bad_Try() = default;
+    };
     bool _is_std11() {
-        std::cout<<"Begain Shows C++11 Aggregates!"<<std::endl;
-        IS_Aggrtgate A{1};                                  //推论，由此可知，判断聚类之前，如果得到用户定义的构造函数，那么表明当前类需要进行特殊处理而不能按照聚合的方式初始化。
+        std::cout<<"Begain Shows C++11 Aggregates!"<<std::endl<<
+        "Testing Class : IS_Aggregate\t"<<((std::is_aggregate<IS_Aggregate>::value)?"true":"false")<<std::endl;
+        IS_Aggregate A{1};                                  //推论，由此可知，判断聚类之前，如果得到用户定义的构造函数，那么表明当前类需要进行特殊处理而不能按照聚合的方式初始化。
                                                             //哪怕构造函数函数体，参数等，均为空，这也是用户定义了行为的构造函数
                                                             //由当前示例可知，实际上并不调用构造函数，因为构造函数被定义为private
                                                             //但是会调用析构函数，因为允许存在非PODs类型的数据成员，那么就不敢保证其析构函数是否被用户定义行为
@@ -233,7 +247,14 @@ namespace _in_std11 {
         Important_example();
     };
     Important_example::Important_example() = default;         //这个类是非trivial的，因为在第一次声明时就需要判断构造函数等是否是user-provide的
+    bool in_std_11_trivial() {
+        std::cout<<"Testing : IS_Trivial\t"<<std::endl<<(std::is_pod<IS_Trivial>::value?"true":"false")<<std::endl;
+    }
+    struct Base_STD_Layout{};
+    struct Base_STD_Layout1:Base_STD_Layout{};
+    struct STD_Layout:Base_STD_Layout1{
 
+    };
 
 }
 bool main_aggregate_and_pods() {

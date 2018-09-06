@@ -21,7 +21,8 @@ namespace _in_std03 {
         static int foo2;                                     //static数据成员可以有protected访问限制
         //virtual int vfun2(){}
     public:
-        IS_Aggergates &operator=(IS_Aggergates &src){}       //有用户定义的重载=运算符
+        IS_Aggergates &operator=(IS_Aggergates &src)
+                {return *this;}                              //有用户定义的重载=运算符
         ~IS_Aggergates(){}                                   //有用户定义的析构函数
         //virtual int vfun3(){}
         //IS_PODs(){}
@@ -198,7 +199,8 @@ namespace _in_std11 {
         //virtual void fun4(){}                             //同C++03
         //int foo4 = 3;                                     //增加C++11新特性，允许对非静态成员使用定义初始化赋值
         //std::vector<int> foo5{1,2,3};                     //同上
-        IS_Aggrtgate &operator=(IS_Aggrtgate &src){}        //同C++03
+        IS_Aggrtgate &operator=(IS_Aggrtgate &src)
+                {return *this;}                             //同C++03
         ~IS_Aggrtgate(){std::cout<<"Destroctor Called!"<<std::endl;} //同C++03
         int foo6;
         std::vector<int> foo7;                              //同C++03
@@ -208,10 +210,31 @@ namespace _in_std11 {
         IS_Aggrtgate A{1};                                  //推论，由此可知，判断聚类之前，如果得到用户定义的构造函数，那么表明当前类需要进行特殊处理而不能按照聚合的方式初始化。
                                                             //哪怕构造函数函数体，参数等，均为空，这也是用户定义了行为的构造函数
                                                             //由当前示例可知，实际上并不调用构造函数，因为构造函数被定义为private
-                                                            //但是会调用析构函数，因为允许存在非PODs类型的数据成员，那么就不敢保证其数据成员的析构函数是否被用户定义行为
+                                                            //但是会调用析构函数，因为允许存在非PODs类型的数据成员，那么就不敢保证其析构函数是否被用户定义行为
         //IS_Aggrtgate *P = new IS_Aggrtgate();
         return true;
     }
+    //因为C++11起，对PODs进行了更加实用的，细致的划分(其主要定义上同03的相差无几)，但是却是两者
+    //trivial和standard-layout的并集，即两者的特性在PODs上都要有
+    struct Base_Trival1{};                                  //空类是允许的
+    struct IS_Trivial : Base_Trival1{
+    private:
+        IS_Trivial() = default;                             //存在非用户定义的构造函数
+        int foo1;                                           //可以有非public的非静态数据成员
+    public:
+        static int sfoo1;                                   //静态成员的规定依然存在
+        IS_Trivial(int arg1,int arg2):Base_Trival1(),foo1(arg1),foo2(arg2){}    //在存在trivial构造函数的时候可以允许存在其他的构造函数
+        int foo2;
+        Base_Trival1 foo3;                                  //类型成员也是一个trivial
+        ~IS_Trivial() = default;                            //虚函数为trivial
+        void func1();                                       //非虚函数即可
+    };
+    struct Important_example{
+        Important_example();
+    };
+    Important_example::Important_example() = default;         //这个类是非trivial的，因为在第一次声明时就需要判断构造函数等是否是user-provide的
+
+
 }
 bool main_aggregate_and_pods() {
     return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11();

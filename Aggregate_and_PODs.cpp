@@ -230,16 +230,17 @@ namespace _in_std11 {
     }
     //因为C++11起，对PODs进行了更加实用的，细致的划分(其主要定义上同03的相差无几)，但是却是两者
     //trivial和standard-layout的并集，即两者的特性在PODs上都要有
-    struct Base_Trival1{};                                  //空类是允许的
-    struct IS_Trivial : Base_Trival1{
+    //trivial copyable是trivial的超集，其中的特性就不在这里补充了，详情见博客。
+    struct Base_Trivial1{Base_Trivial1(){}};                                  //空类是允许的,此时该类不是trivial的但是却是trivial copyable的
+    struct IS_Trivial : Base_Trivial1{
     private:
         IS_Trivial() = default;                             //存在非用户定义的构造函数
         int foo1;                                           //可以有非public的非静态数据成员
     public:
         static int sfoo1;                                   //静态成员的规定依然存在
-        IS_Trivial(int arg1,int arg2):Base_Trival1(),foo1(arg1),foo2(arg2){}    //在存在trivial构造函数的时候可以允许存在其他的构造函数
+        IS_Trivial(int arg1,int arg2):Base_Trivial1(),foo1(arg1),foo2(arg2){}    //在存在trivial构造函数的时候可以允许存在其他的构造函数
         int foo2;
-        Base_Trival1 foo3;                                  //类型成员也是一个trivial
+        Base_Trivial1 foo3;                                 //类型成员也是一个trivial
         ~IS_Trivial() = default;                            //虚函数为trivial
         void func1();                                       //非虚函数即可
     };
@@ -247,18 +248,68 @@ namespace _in_std11 {
         Important_example();
     };
     Important_example::Important_example() = default;         //这个类是非trivial的，因为在第一次声明时就需要判断构造函数等是否是user-provide的
+    struct Base1_trivial{
+        int foo1;
+        Base1_trivial() = default;
+        Base1_trivial(int a):foo1(a){}
+    };
+    struct Base2_trivial{
+        int foo2;
+        ~Base2_trivial() = default;
+    };
+    struct mul_inher:Base1_trivial,Base2_trivial{
+        Base1_trivial foo3;
+        Base2_trivial foo4;
+    };
     bool in_std_11_trivial() {
-        std::cout<<"Testing : IS_Trivial\t"<<std::endl<<(std::is_pod<IS_Trivial>::value?"true":"false")<<std::endl;
+        std::cout<<"Begain Shows C++11 Trivial:\nTesting : IS_Trivial\nUsing is_pod:"<<(std::is_pod<IS_Trivial>::value?"true\n":"false\n")<<"Using is_trivially_copyable:"<<(std::is_trivially_copyable<IS_Trivial>::value?"true\n":"false\n")<<
+        "Using is_trivial:"<<(std::is_trivial<IS_Trivial>::value?"true\n":"false\n")<<std::endl<<
+        "Testing : Important_example\t"<<(std::is_trivial<Important_example>::value?"true":"false")<<std::endl<<
+        "Testing : mul_inher\t"<<(std::is_trivial<mul_inher>::value?"true":"false")<<std::endl;
+        return true;
     }
+    //对于standard layout的限制明显少了很多，具体特性见博客。
     struct Base_STD_Layout{};
     struct Base_STD_Layout1:Base_STD_Layout{};
-    struct STD_Layout:Base_STD_Layout1{
-
+    struct STD_Layout:Base_STD_Layout1{                         //在继承树中只能有一个类有非静态且不为非standard layout的成员
+    private:
+        int foo1,foo2,foo3;                                     //只要所有成员的访问限制统一即可
+        Base_STD_Layout foo4;                                   //可以拥有之前基类类型的数据成员
+        Base_STD_Layout1 foo5;
+    public:
+        STD_Layout(){}                                          //没有过多的对默认构造函数，移动，拷贝构造，移动，拷贝赋值运算符，析构函数做限制
+        STD_Layout(int a,int b,int c):foo1(a),foo2(b),foo3(c){}
+        STD_Layout(STD_Layout &src){}
+        STD_Layout(STD_Layout &&src){}
+        STD_Layout &operator=(STD_Layout &src){return *this;}
+        STD_Layout &&operator =(STD_Layout &&src){return (STD_Layout&&)*this;}
+        ~STD_Layout(){}
     };
+    struct Base_STD_Layout2{};
+    struct T_1:Base_STD_Layout,Base_STD_Layout2{
+        int foo1;                                               //可以继承，多继承
+        STD_Layout foo2;                                        //可以含有基类类型数据成员
+    };
+    struct T_2:T_1{
+        int fod;                                                //继承树中，只允许一个类有非静态数据成员
+    };
+    struct T_T{
+        Base_STD_Layout foo3[2];
+    };
+    struct T_3:Base_STD_Layout,Base_STD_Layout2{
+        T_T _tD;                                                //基类不允许成为第一个非静态数据成员，对于其他std layout型成员也是递执行的，即不可以以基类类型的非静态数组、成员。
+        Base_STD_Layout foo1[2];
+        Base_STD_Layout2 foo2;
+    };
+    bool in_std_11_STD_Layout() {
+        std::cout<<"Begain Shows C++11 Standard Layout:\nTesting : STD_Layout\t"<<(std::is_standard_layout<STD_Layout>::value?"true":"false")<<std::endl<<
+        "Testing : T_1:"<<(std::is_standard_layout<T_1>::value?"true":"false")<<std::endl<<"Testing : T_1:"<<(std::is_standard_layout<T_1>::value?"true":"false")<<std::endl<<
+        "Testing : T_2:"<<(std::is_standard_layout<T_2>::value?"true":"false")<<std::endl<<"Testing : T_3:"<<(std::is_standard_layout<T_3>::value?"true":"false")<<std::endl;
+        return true;
+    }
 
 }
 bool main_aggregate_and_pods() {
-    return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11();
+    return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11()&&_in_std11::in_std_11_trivial()&& _in_std11::in_std_11_STD_Layout();
 }
 NS_END
-

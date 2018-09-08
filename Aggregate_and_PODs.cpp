@@ -209,6 +209,9 @@ namespace _in_std11 {
         //std::vector<int> foo5{1,2,3};                     //同上
         IS_Aggregate &operator=(IS_Aggregate &src)
                 {return *this;}                             //同C++03
+        IS_Aggregate &&operator==(IS_Aggregate &&src){      //OK，因为允许用户定义=运算符重载
+            return (IS_Aggregate&&)*this;
+        }
         ~IS_Aggregate(){std::cout<<"Destroctor Called!"<<std::endl;} //同C++03
         int foo6;
         std::vector<int> foo7;                              //同C++03
@@ -231,14 +234,15 @@ namespace _in_std11 {
     //因为C++11起，对PODs进行了更加实用的，细致的划分(其主要定义上同03的相差无几)，但是却是两者
     //trivial和standard-layout的并集，即两者的特性在PODs上都要有
     //trivial copyable是trivial的超集，其中的特性就不在这里补充了，详情见博客。
-    struct Base_Trivial1{Base_Trivial1(){}};                                  //空类是允许的,此时该类不是trivial的但是却是trivial copyable的
+    struct Base_Trivial1{//Base_Trivial1(){}
+    };                                                      //空类是允许的,如果存在构造函数时此时该类不是trivial的但是却是trivial copyable的
     struct IS_Trivial : Base_Trivial1{
     private:
         IS_Trivial() = default;                             //存在非用户定义的构造函数
         int foo1;                                           //可以有非public的非静态数据成员
     public:
         static int sfoo1;                                   //静态成员的规定依然存在
-        IS_Trivial(int arg1,int arg2):Base_Trivial1(),foo1(arg1),foo2(arg2){}    //在存在trivial构造函数的时候可以允许存在其他的构造函数
+        //IS_Trivial(int arg1,int arg2):Base_Trivial1(),foo1(arg1),foo2(arg2){}    //在存在trivial构造函数的时候可以允许存在其他的构造函数
         int foo2;
         Base_Trivial1 foo3;                                 //类型成员也是一个trivial
         ~IS_Trivial() = default;                            //虚函数为trivial
@@ -301,15 +305,28 @@ namespace _in_std11 {
         Base_STD_Layout foo1[2];
         Base_STD_Layout2 foo2;
     };
+    struct T_4:T_1,Base_STD_Layout {};
     bool in_std_11_STD_Layout() {
         std::cout<<"Begain Shows C++11 Standard Layout:\nTesting : STD_Layout\t"<<(std::is_standard_layout<STD_Layout>::value?"true":"false")<<std::endl<<
         "Testing : T_1:"<<(std::is_standard_layout<T_1>::value?"true":"false")<<std::endl<<"Testing : T_1:"<<(std::is_standard_layout<T_1>::value?"true":"false")<<std::endl<<
-        "Testing : T_2:"<<(std::is_standard_layout<T_2>::value?"true":"false")<<std::endl<<"Testing : T_3:"<<(std::is_standard_layout<T_3>::value?"true":"false")<<std::endl;
+        "Testing : T_2:"<<(std::is_standard_layout<T_2>::value?"true":"false")<<std::endl<<"Testing : T_3:"<<(std::is_standard_layout<T_3>::value?"true":"false")<<std::endl<<
+        "Testing : T_4:"<<(std::is_standard_layout<T_4>::value?"true":"false")<<std::endl;
+        return true;
+    }
+}
+namespace _in_std14
+{       //C++14总体变化不大，对于PODs，以及trivial和 standard layout都没有变化
+    struct Only_Change{
+        int i = 123;
+    };
+    bool is_std_14_all(){
+        std::cout<<"Begain Test All:\nTesting Aggregate : "<<(std::is_aggregate<Only_Change>::value?"true\n":"false\n")<<"Testing PODs:"<<(std::is_pod<Only_Change>::value?"true\n":"false\n")<<
+        "Testing trivial cpoyable:"<<(std::is_trivially_copyable<Only_Change>::value?"true\n":"false\n")<<"Testing trivial:"<<(std::is_trivial<Only_Change>::value?"true\n":"false\n")<<"Testing standard layout:"<<(std::is_standard_layout<Only_Change>::value?"true":"false")<<std::endl;
         return true;
     }
 
 }
 bool main_aggregate_and_pods() {
-    return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11()&&_in_std11::in_std_11_trivial()&& _in_std11::in_std_11_STD_Layout();
+    return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11()&&_in_std11::in_std_11_trivial()&& _in_std11::in_std_11_STD_Layout()&&_in_std14::is_std_14_all();
 }
 NS_END

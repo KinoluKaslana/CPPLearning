@@ -277,7 +277,7 @@ namespace _in_std11 {
     struct Base_STD_Layout1:Base_STD_Layout{};
     struct STD_Layout:Base_STD_Layout1{                         //在继承树中只能有一个类有非静态且不为非standard layout的成员
     private:
-        int foo1,foo2,foo3;                                     //只要所有成员的访问限制统一即可
+        int foo1,foo2,foo3 = 4;                                 //只要所有成员的访问限制统一即可
         Base_STD_Layout foo4;                                   //可以拥有之前基类类型的数据成员
         Base_STD_Layout1 foo5;
     public:
@@ -314,8 +314,7 @@ namespace _in_std11 {
         return true;
     }
 }
-namespace _in_std14
-{       //C++14总体变化不大，对于PODs，以及trivial和 standard layout都没有变化
+namespace _in_std14 {       //C++14总体变化不大，对于PODs，以及trivial和 standard layout都没有变化
     struct Only_Change{
         int i = 123;
     };
@@ -326,7 +325,43 @@ namespace _in_std14
     }
 
 }
+namespace _in_std17{
+    //std17新增以下规定：
+    //(std::is_aggregate)是C++17的标准，用于验证C++17标准的aggregate，之前的arregate均没有使用到以下限制内容，所以可以。
+    class BadBase1{
+        explicit BadBase1():foo1(0){}        //用户定义的构造函数（各种）是不可以有的，可以有各种运算符重载和析构函数；其中explicit的构造函数也是不可以有的
+        int foo1;
+        virtual void func() const{}
+    };
+    class BadBase2:BadBase1{                 //不可以使用虚，protected，private继承。
+        using BadBase1::BadBase1;            //不可以使用继承构造函数
+        int foo2;
+        void func()const final override{}
+    };
+    class Base1{
+        std::vector<BadBase1> foo1;
+    };
+    struct IS_aggregate:public BadBase2,public Base1{           //合理的多继承是允许的
+        BadBase2 foo1;                                          //OK采用非aggregate的类，数组，使用列表初始化进行其成员初始化。
+        Base1 foo2;
+        IS_aggregate &operator=(IS_aggregate &src){
+            return *this;
+        }
+
+        char str[10];                                             //明文规定，数组是按照数组递增顺序为内存排列的。
+
+        ~IS_aggregate(){
+            std::cout<<"Endl\n";
+        }
+    };
+    bool _in_std17()
+    {
+        std::cout<<"Begain Shows C++11 Aggregates!\nTesting IS_aggregate:"<<(std::is_aggregate<IS_aggregate>::value?"true":"false")<<std::endl;
+        return true;
+    }
+}
 bool main_aggregate_and_pods() {
-    return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11()&&_in_std11::in_std_11_trivial()&& _in_std11::in_std_11_STD_Layout()&&_in_std14::is_std_14_all();
+    return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11()&&_in_std11::in_std_11_trivial()&& _in_std11::in_std_11_STD_Layout()&&_in_std14::is_std_14_all()
+    && _in_std17::_in_std17();
 }
 NS_END

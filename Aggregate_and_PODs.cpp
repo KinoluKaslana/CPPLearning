@@ -1,6 +1,7 @@
 //
 // Created by KinoluKaslana on 18-9-3.
 //
+//对应本源文件中的所有代码的博客地址：https://www.jianshu.com/p/cf350108270f
 
 #include <iostream>
 #include <cstdlib>
@@ -348,17 +349,26 @@ namespace _in_std17{
             return *this;
         }
 
-        char str[10];                                             //明文规定，数组是按照数组递增顺序为内存排列的。
+        char str[10];                                            //明文规定，数组是按照数组递增顺序为内存排列的。
 
         ~IS_aggregate(){
             std::cout<<"Endl\n";
         }
     };
-    bool _in_std17()
-    {
-        std::cout<<"Begain Shows C++11 Aggregates!\nTesting IS_aggregate:"<<(std::is_aggregate<IS_aggregate>::value?"true":"false")<<std::endl;
+    struct VBase1{
+        VBase1() = delete;
+        VBase1(VBase1 &) = delete;
+        VBase1(VBase1 &&) = delete;
+        VBase1 &operator=(VBase1 &) = delete;
+        VBase1 &operator=(VBase1 &&) = delete;
+        ~VBase1()= delete;
+    };
+    bool _in_std17() {
+        std::cout<<"Begain Shows C++11 Aggregates!\nTesting IS_aggregate:"<<(std::is_aggregate<IS_aggregate>::value?"true":"false")<<std::endl<<"Testing VBase1:"<<(std::is_aggregate<VBase1>::value?"true":"false")<<std::endl;
         return true;
     }
+    //其余的trivial和standard layout的细节更改，由于和C++14差不多，只是将其定义的更加完善，所以此处没有例子，具体修改请看博客。
+
 }
 bool main_aggregate_and_pods() {
     return _in_std03::in_std03() && _in_std03::in_std03_POD()&&_in_std11::_is_std11()&&_in_std11::in_std_11_trivial()&& _in_std11::in_std_11_STD_Layout()&&_in_std14::is_std_14_all()

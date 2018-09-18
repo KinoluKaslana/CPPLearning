@@ -2,6 +2,7 @@
 // Created by KinoluKaslana on 18-8-30.
 //
 #include <iostream>
+#include <regex>
 #include "AllCore.h"
 NS_VALUE_CAT
 bool main_value_category();
@@ -12,7 +13,11 @@ NS_END
 NS_AGGREATE_POD
 bool main_aggregate_and_pods();
 NS_END
+NS_COPY_ELISION
+bool _main_copy_elision();
+NS_END
 int main() {
+
     if(std::cout<<"Running example: value_category"<<std::endl,
            VALUE_CATEGORY::main_value_category())
         std::cout<<"Done!"<<std::endl;
@@ -22,5 +27,8 @@ int main() {
     if(std::cout<<"Running example: aggregate and PODs"<<std::endl,
             Aggergates_POD::main_aggregate_and_pods())
         std::cout<<"Done!"<<std::endl;
+    if(std::cout<<"Running example: copy elision"<<std::endl,
+            Copy_elision::_main_copy_elision())
+        std::cout<<"Dnoe!"<<std::endl;
     return 0;
 }

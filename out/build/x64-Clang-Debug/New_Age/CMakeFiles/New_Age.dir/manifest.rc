@@ -1,0 +1,2 @@
+#pragma code_page(65001)
+1 /* CREATEPROCESS_MANIFEST_RESOURCE_ID */ 24 /* RT_MANIFEST */ "E:/New_Age/out/build/x64-Clang-Debug/New_Age/CMakeFiles/New_Age.dir/embed.manifest"
